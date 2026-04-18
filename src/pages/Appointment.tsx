@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, User, Bot, CheckCircle, ExternalLink, Calendar } from "lucide-react";
+import { Send, User, Bot, CheckCircle, ExternalLink, Calendar, AlertCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Markdown from "react-markdown";
 import { ai } from "@/lib/gemini";
@@ -31,20 +31,25 @@ export default function Appointment() {
   const [isLinked, setIsLinked] = useState(false);
   const [appointmentData, setAppointmentData] = useState<AppointmentDetails | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [uiError, setUiError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchBusySlots = async () => {
       try {
         const res = await fetch("/api/calendar/busy-slots");
+        if (!res.ok) throw new Error("Failed to fetch slots");
         const data = await res.json();
         setBusySlots(data.busy || []);
 
         const statusRes = await fetch("/api/auth/google/status");
-        const statusData = await statusRes.json();
-        setIsLinked(statusData.linked);
+        if (statusRes.ok) {
+          const statusData = await statusRes.json();
+          setIsLinked(statusData.linked);
+        }
       } catch (err) {
         console.error("Error fetching calendar data:", err);
+        setUiError("Unable to load live calendar availability. The AI may accidentally suggest a booked slot.");
       }
     };
     fetchBusySlots();
@@ -52,17 +57,18 @@ export default function Appointment() {
 
   const syncToCalendar = async (data: AppointmentDetails) => {
     setIsSyncing(true);
+    setUiError(null);
     try {
       const res = await fetch("/api/calendar/create-event", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data)
       });
-      if (res.ok) {
-        console.log("Calendar synced successfully");
-      }
+      if (!res.ok) throw new Error("Sync failed");
+      console.log("Calendar synced successfully");
     } catch (err) {
       console.error("Failed to sync to calendar:", err);
+      setUiError("Failed to sync your appointment to Google Calendar automatically. Please proceed to confirm manually via WhatsApp.");
     } finally {
       setIsSyncing(false);
     }
@@ -79,6 +85,7 @@ export default function Appointment() {
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
     
+    setUiError(null); // Clear previous errors on new attempt
     const userMsg = input.trim();
     setInput("");
     setMessages(prev => [...prev, { role: "user", text: userMsg }]);
@@ -103,7 +110,7 @@ export default function Appointment() {
         : "The clinic's calendar is currently empty for the next few days.";
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-pro-preview",
+        model: "gemini-3-flash-preview",
         contents: contents,
         config: {
           systemInstruction: `You are an AI receptionist for Aura Clinic. Today is ${nowDate}. Your explicit task is to collect information to book a medical appointment. 
@@ -156,7 +163,8 @@ export default function Appointment() {
       }
     } catch (error) {
       console.error("AI Error:", error);
-      setMessages(prev => [...prev, { role: "model", text: "Sorry, I am having trouble connecting to the server. Please try again later." }]);
+      setUiError("The AI encountered a connection problem over the network. Please verify your connection or try again.");
+      setMessages(prev => [...prev, { role: "model", text: "Sorry, I am having trouble connecting to the server. Please check your network and try again." }]);
     } finally {
       setIsTyping(false);
     }
@@ -179,10 +187,10 @@ Please confirm my booking.`;
   };
 
   return (
-    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)] min-h-[600px] bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+    <div className="max-w-3xl mx-auto flex flex-col h-[calc(100vh-8rem)] min-h-[600px] bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden relative">
       
       {/* Header */}
-      <div className="bg-slate-50 border-b border-slate-100 p-6 flex items-center justify-between shrink-0">
+      <div className="bg-slate-50 border-b border-slate-100 p-6 flex items-center justify-between shrink-0 z-10 relative">
         <div className="text-left">
           <h1 className="text-2xl font-bold text-slate-800">AI Appointment Booking</h1>
           <p className="text-sm text-slate-500 mt-1">Chat to secure your slot in minutes</p>
@@ -197,8 +205,30 @@ Please confirm my booking.`;
         </a>
       </div>
 
+      {/* Global Error Toast */}
+      <AnimatePresence>
+        {uiError && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-[88px] left-4 right-4 z-20 flex items-start gap-3 p-4 bg-red-50 border border-red-200 text-red-700 rounded-xl shadow-md"
+          >
+            <AlertCircle className="h-5 w-5 shrink-0 mt-0.5 text-red-500" />
+            <p className="text-sm flex-1 leading-relaxed">{uiError}</p>
+            <button 
+              onClick={() => setUiError(null)}
+              className="text-red-400 hover:text-red-600 transition-colors p-1"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Chat Area */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50">
+      <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50/50 relative z-0">
+
         {messages.map((msg, i) => (
           <div 
             key={i} 

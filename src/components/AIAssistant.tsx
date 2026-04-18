@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { MessageCircle, X, Send, Bot, User } from "lucide-react";
+import { MessageCircle, X, Send, Bot, User, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Markdown from "react-markdown";
 import { useLocation } from "react-router-dom";
@@ -20,6 +20,7 @@ export default function AIAssistant() {
   ]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [uiError, setUiError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -38,6 +39,7 @@ export default function AIAssistant() {
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
     
+    setUiError(null);
     const userMsg = input.trim();
     setInput("");
     setMessages(prev => [...prev, { role: "user", text: userMsg }]);
@@ -63,6 +65,7 @@ export default function AIAssistant() {
       setMessages(prev => [...prev, { role: "model", text: reply }]);
     } catch (error) {
       console.error("AI Error:", error);
+      setUiError("Network or server connection failed. Please ensure you are connected and try again.");
       setMessages(prev => [...prev, { role: "model", text: "Sorry, I am having trouble connecting to the server. Please try again later." }]);
     } finally {
       setIsTyping(false);
@@ -92,7 +95,7 @@ export default function AIAssistant() {
             className="fixed bottom-6 right-6 w-[350px] max-w-[calc(100vw-3rem)] h-[500px] max-h-[calc(100vh-6rem)] bg-white rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50 border border-slate-200"
           >
             {/* Header */}
-            <div className="bg-teal-600 text-white p-4 flex items-center justify-between shadow-sm z-10">
+            <div className="bg-teal-600 text-white p-4 flex items-center justify-between shadow-sm z-10 relative">
               <div className="flex items-center gap-2">
                 <Bot className="h-5 w-5" />
                 <span className="font-semibold text-sm">Aura Assistant</span>
@@ -105,8 +108,29 @@ export default function AIAssistant() {
               </button>
             </div>
 
+            {/* Error Banner */}
+            <AnimatePresence>
+              {uiError && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-red-50 border-b border-red-100 p-3 flex items-start gap-2 relative z-0"
+                >
+                  <AlertCircle className="h-4 w-4 text-red-500 shrink-0 mt-0.5" />
+                  <p className="text-xs text-red-700 leading-relaxed pr-4">{uiError}</p>
+                  <button 
+                    onClick={() => setUiError(null)}
+                    className="absolute top-3 right-2 text-red-400 hover:text-red-700"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 relative z-0">
               {messages.map((msg, i) => (
                 <div 
                   key={i} 
