@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { MessageCircle, X, Send, Bot, User } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Markdown from "react-markdown";
+import { useLocation } from "react-router-dom";
 import { ai } from "@/lib/gemini";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +13,8 @@ type Message = {
 
 export default function AIAssistant() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
+  
   const [messages, setMessages] = useState<Message[]>([
     { role: "model", text: "Hello! I'm your Aura Clinic assistant. How can I help you today?" }
   ]);
@@ -26,6 +29,11 @@ export default function AIAssistant() {
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  // Hide on appointment page
+  if (location.pathname === "/appointment") {
+    return null;
+  }
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;

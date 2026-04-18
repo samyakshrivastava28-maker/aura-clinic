@@ -1,0 +1,6 @@
+/*  Standard Netlify SPA redirect  */
+/*  Redirects all paths to index.html for React Router handling  */
+/*  Except for API calls, which we can't handle purely statically  */
+
+/api/*  https://ais-pre-bty4st74o6qxv2p6nol5w7-644759808483.asia-east1.run.app/api/:splat  200
+/*      /index.html  200

@@ -28,6 +28,7 @@ export default function Appointment() {
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [busySlots, setBusySlots] = useState<{ start: string; end: string }[]>([]);
+  const [isLinked, setIsLinked] = useState(false);
   const [appointmentData, setAppointmentData] = useState<AppointmentDetails | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -38,8 +39,12 @@ export default function Appointment() {
         const res = await fetch("/api/calendar/busy-slots");
         const data = await res.json();
         setBusySlots(data.busy || []);
+
+        const statusRes = await fetch("/api/auth/google/status");
+        const statusData = await statusRes.json();
+        setIsLinked(statusData.linked);
       } catch (err) {
-        console.error("Error fetching busy slots:", err);
+        console.error("Error fetching calendar data:", err);
       }
     };
     fetchBusySlots();
@@ -138,8 +143,12 @@ export default function Appointment() {
           const args = call.args as unknown as AppointmentDetails;
           setAppointmentData(args);
           // Auto-sync to calendar
-          syncToCalendar(args);
-          setMessages(prev => [...prev, { role: "model", text: "Great! I have collected all the necessary details and initiated the calendar sync. Please review your appointment summary below and confirm via WhatsApp to secure your slot." }]);
+          if (isLinked) {
+            syncToCalendar(args);
+            setMessages(prev => [...prev, { role: "model", text: "Great! I have collected all the necessary details and initiated the calendar sync. Please review your appointment summary below and confirm via WhatsApp to secure your slot." }]);
+          } else {
+            setMessages(prev => [...prev, { role: "model", text: "Great! I have collected all the necessary details. Please review your appointment summary below and confirm via WhatsApp to secure your slot." }]);
+          }
         }
       } else {
         const reply = response.text || "I'm sorry, I didn't quite get that. Could you please clarify?";

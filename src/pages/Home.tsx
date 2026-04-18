@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { ArrowRight, Star, HeartPulse, Clock, ShieldCheck, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
+import SymptomChecker from "@/components/SymptomChecker";
 
 export default function Home() {
   return (
@@ -83,6 +84,9 @@ export default function Home() {
           </motion.div>
         </div>
       </section>
+
+      {/* AI Symptom Checker Section */}
+      <SymptomChecker />
 
       {/* About Section */}
       <section className="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-slate-100">

@@ -7,7 +7,6 @@ export default function Navbar() {
     { to: "/", label: "Home" },
     { to: "/appointment", label: "Book Appointment" },
     { to: "/contact", label: "Contact" },
-    { to: "/admin", label: "Settings" },
   ];
 
   return (

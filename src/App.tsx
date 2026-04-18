@@ -8,7 +8,6 @@ import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Appointment from "./pages/Appointment";
 import Contact from "./pages/Contact";
-import Admin from "./pages/Admin";
 import AIAssistant from "./components/AIAssistant";
 
 export default function App() {
@@ -20,7 +19,6 @@ export default function App() {
           <Route path="/" element={<Home />} />
           <Route path="/appointment" element={<Appointment />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/admin" element={<Admin />} />
         </Routes>
       </main>
       <AIAssistant />
