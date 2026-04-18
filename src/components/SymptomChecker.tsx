@@ -20,7 +20,7 @@ export default function SymptomChecker() {
 
     try {
       const response = await ai.models.generateContent({
-        model: "gemini-1.5-flash",
+        model: "gemini-3-flash-preview",
         contents: [{
           role: "user",
           parts: [{ text: `You are a medical assistant for Aura Clinic. Conduct a preliminary analysis of the following symptoms provided by a patient: "${symptoms}". 

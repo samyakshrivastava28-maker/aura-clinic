@@ -52,7 +52,7 @@ export default function AIAssistant() {
       contents.push({ role: "user", parts: [{ text: userMsg }] });
 
       const response = await ai.models.generateContent({
-        model: "gemini-3.1-flash-preview",
+        model: "gemini-3-flash-preview",
         contents: contents,
         config: {
           systemInstruction: "You are a helpful and polite virtual assistant for Aura Clinic. You answer general questions about medical clinic services. If they want to book an appointment, advise them to go to the Book Appointment page.",
