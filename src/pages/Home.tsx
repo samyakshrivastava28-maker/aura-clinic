@@ -67,9 +67,9 @@ export default function Home() {
           >
             <div className="absolute inset-0 bg-teal-100 rounded-3xl transform rotate-3 scale-105 -z-10"></div>
             <img 
-              src="https://picsum.photos/seed/doctor1/800/1000" 
-              alt="Doctor attending patient" 
-              className="rounded-3xl w-full h-[500px] object-cover shadow-xl"
+              src="https://i.pinimg.com/236x/1f/04/4b/1f044bded075083d6ad1d325f4f89943.jpg" 
+              alt="Aura Clinic Interior" 
+              className="rounded-3xl w-full h-[500px] object-cover shadow-xl bg-slate-50"
               referrerPolicy="no-referrer"
             />
             <div className="absolute -bottom-6 -left-6 bg-white p-4 rounded-2xl shadow-lg flex items-center gap-4">
@@ -99,7 +99,7 @@ export default function Home() {
         >
           <div>
             <img 
-              src="https://picsum.photos/seed/doctorPortrait/600/600" 
+              src="https://grouponemedical.com.au/wp-content/uploads/2021/01/doctor-slider-900.jpg" 
               alt="Dr. Smith" 
               className="rounded-2xl object-cover aspect-square shadow-md"
               referrerPolicy="no-referrer"
